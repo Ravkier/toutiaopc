@@ -61,9 +61,24 @@ export default {
   },
   methods: {
     login () {
-      this.$refs.myForm.validate(function (isOk) {
+      this.$refs.myForm.validate(isOk => {
         if (isOk) {
-          console.log('验证成功')
+          // console.log('验证成功')
+          this.$axios({
+            url: '/mp/v1_0/authorizations',
+            data: this.loginForm,
+            method: 'post'
+          }).then(result => {
+            // 登录成功
+            window.localStorage.setItem('user-token', result.data.data.token)
+            this.$router.push('/') // 登录成功跳转主页面
+          }).catch(() => {
+            // 登录失败 警告
+            this.$message({
+              message: '手机号或者验证码错误',
+              type: 'warning'
+            })
+          })
         }
       })
     }
