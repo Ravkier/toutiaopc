@@ -70,7 +70,7 @@ export default {
             method: 'post'
           }).then(result => {
             // 登录成功
-            window.localStorage.setItem('user-token', result.data.data.token)
+            window.localStorage.setItem('user-token', result.data.token)
             this.$router.push('/') // 登录成功跳转主页面
           }).catch(() => {
             // 登录失败 警告
