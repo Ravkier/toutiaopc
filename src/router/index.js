@@ -19,6 +19,13 @@ const routes = [
       { //
         path: '', // 二级路由的path 什么都不写 代表二级路由的默认组件 如果 a => /home/a 如果什么都不写  /home
         component: secondHome // 默认的二级路由组件
+      }, {
+        path: 'comment',
+        component: () => import('@/views/comment')
+      }, {
+        // 挂载素材管理路由
+        path: 'material',
+        component: () => import('@/views/material')
       }
     ]
   },

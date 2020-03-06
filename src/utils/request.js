@@ -5,8 +5,13 @@
 
 import axios from 'axios'
 import router from '@/router' // 引入实例化路由
+import JSONBig from 'json-bigint' // 引入json-big， 处理大数字
 
 axios.defaults.baseURL = 'http://ttapi.research.itcast.cn' // 配置基地址
+axios.defaults.transformResponse = [function (data) {
+  // 判断是否有数据 ， 把数据转化位bignumber 对象
+  return data ? JSONBig.parse(data) : {}
+}]
 // 请求拦截去
 axios.interceptors.request.use(function (config) {
   // 请求成功时做的事
