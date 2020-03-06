@@ -5,6 +5,13 @@
     <bread-crumd slot="header">
         <template slot="title">素材管理</template>
     </bread-crumd>
+    <!-- 上传模块 -->
+    <el-row type="flex" justify="end">
+      <!-- 必须有action属性，没有报错 -->
+      <el-upload :show-file-list="false" :http-request="uploadImg" action="">
+        <el-button size="small" type="primary">上传素材</el-button>
+      </el-upload>
+    </el-row>
     <!-- 选项卡 -->
     <el-tabs type="card" v-model="activeName" @tab-click="changTab">
         <!-- 全部资源 -->
@@ -57,6 +64,21 @@ export default {
     }
   },
   methods: {
+    uploadImg (params) {
+      const data = new FormData()
+      data.append('image', params.files)
+      this.$axios({
+        url: '/mp/v1_0/user/images',
+        method: 'post',
+        data
+      }).then(() => {
+        // 成功了在获取一次
+        this.getList()
+      }).catch(() => {
+        // 失败提示文件失败
+        this.$message.error('上传文件失败')
+      })
+    },
     // 分页改变时 改变数据
     changePage (row) {
       // 把点击得 在赋值给页面上
