@@ -20,11 +20,11 @@
             <div class="list-img">
                 <!-- 循环每条数据 -->
                 <el-card class="card-img" v-for="item in list" :key="item.id">
-                    <img class="img" :src="item.url" alt="">
+                    <img class="img" :src="item.url" alt="" @click="selectImg(index)">
                     <!-- 操作标签 -->
                     <el-row class="row-img" type="flex" justify="space-around" align="middle">
-                        <i class="el-icon-star-off"></i>
-                        <i class="el-icon-delete"></i>
+                        <i @click="collectOrClose(item)" :style="{ color:item.is_collected ? 'red' : 'black' }" class="el-icon-star-off"></i>
+                        <i @click="delFile(item)" class="el-icon-delete"></i>
                     </el-row>
                 </el-card>
             </div>
@@ -33,7 +33,7 @@
         <el-tab-pane label="收藏资源" name="collect">
             <div class="list-img">
                 <el-card class="card-img" v-for="item in list" :key="item.id">
-                    <img class="img" :src="item.url" alt="">
+                    <img class="img" :src="item.url" alt="" @click="selectImg(index)">
                 </el-card>
             </div>
         </el-tab-pane>
@@ -47,6 +47,17 @@
         @current-change="changePage"
         ></el-pagination>
     </el-row>
+    <!-- 放置一个el-dialog组件 通过visible 属性进行true false设置 -->
+        <el-dialog @opened="openEnd" :visible="dialogVisible" @close="dialogVisible = false">
+          <!-- 放置一个走马灯组件 -->
+          <el-carousel ref="myCarousel" indicator-position="outside" height="400px">
+             <!-- 放置幻灯片循环项  根据 当前页list 循环-->
+             <el-carousel-item v-for="item in list" :key="item.id">
+                <!-- 放置图片 -->
+                 <img style="width:100%;height:100%" :src="item.url" alt="">
+             </el-carousel-item>
+          </el-carousel>
+        </el-dialog>
   </el-card>
 </template>
 
@@ -60,10 +71,49 @@ export default {
         currentPage: 1, // 当前页数
         total: 0, // 总共页数
         pageSize: 8 // 一条数据请求得页数
-      }
+      },
+      dialogVisible: false, // 控制显示隐藏
+      clickIndex: -1 // 点击的索引
     }
   },
   methods: {
+    openEnd () {
+      // 这个时候已经打开结束 ref已经有值 可以通过ref进行设置了
+      this.$refs.myCarousel.setActiveItem(this.clickIndex) // 尝试通过这种方式设置index
+    },
+    // 点击图片时调用
+    selectImg (index) {
+      this.clickIndex = index // 将索引赋值
+      this.dialogVisible = true // 打开索引
+    },
+    // 删除素材
+    delFile (row) {
+      this.$confirm('您确定要删除该图片么').then(() => {
+        this.$axios({
+          url: '/mp/v1_0/user/images/' + row.id,
+          method: 'delete'
+        }).then(() => {
+          this.getList()
+        }).catch(() => {
+          this.$message.error('操作失败')
+        })
+      })
+    },
+    // 收藏或者取消收藏
+    collectOrClose (row) {
+      this.$axios({
+        url: '/mp/v1_0/user/images/' + row.id,
+        method: 'put',
+        data: {
+          collect: !row.is_collected
+        }
+      }).then(() => {
+        this.getList()
+      }).catch(() => {
+        this.$message.error('操作失败')
+      })
+    },
+    // 上传新文件
     uploadImg (params) {
       const data = new FormData()
       data.append('image', params.files)
