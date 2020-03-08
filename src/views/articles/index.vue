@@ -8,7 +8,7 @@
       <el-form style="padding-left:50px">
          <el-form-item label="文章状态:">
            <!-- 放置单选框组 -->
-           <el-radio-group v-model="searchForm.status">
+           <el-radio-group v-model="searchForm.status" @change="changCondition">
              <!-- 单选框选项  label值表示该选项对应的值-->
              <!-- :label的意思是后面值不会加引号 -->
               <!-- 文章状态，0-草稿，1-待审核，2-审核通过，3-审核失败，不传为全部 / 先将 5 定义成 全部 -->
@@ -22,7 +22,7 @@
          </el-form-item>
          <el-form-item label="频道类型:">
            <!-- 选择器 -->
-           <el-select placeholder="请选择频道" v-model="searchForm.channel_id">
+           <el-select @change="changCondition" placeholder="请选择频道" v-model="searchForm.channel_id">
              <!-- 下拉选项 应该通过接口来获取数据 -->
              <!-- el-option是下拉的选项 label是显示值  value是绑定的值 -->
              <el-option v-for="item in channels" :key="item.id" :label="item.name" :value="item.id"></el-option>
@@ -30,7 +30,7 @@
          </el-form-item>
          <el-form-item label="日期范围:">
            <!-- 日期范围选择组件  要设置type属性为 daterange-->
-           <el-date-picker type='daterange' v-model="searchForm.dateRange"></el-date-picker>
+           <el-date-picker type='daterange' @change="changCondition" value-format="yyyy-MM-dd" v-model="searchForm.dateRange"></el-date-picker>
          </el-form-item>
       </el-form>
       <!-- 文章的主体结构 flex布局  -->
@@ -114,6 +114,18 @@ export default {
     }
   },
   methods: {
+    // from 中改变的参数
+    changCondition () {
+      // 获取变化的参数
+      const params = {
+        status: this.searchForm.status === 5 ? null : this.searchForm.status,
+        channel_id: this.searchForm.channel_id,
+        begin_pubdate: this.searchForm.dateRange && this.searchForm.dateRange.length ? this.searchForm.dateRange[0] : null,
+        end_pubdate: this.searchForm.dateRange && this.searchForm.dateRange.length > 1 ? this.searchForm.dateRange[1] : null
+      }
+      //   重新获取参数传入获取列表的方法
+      this.getArticles(params)
+    },
     // 获取频道数据
     getChannels () {
       this.$axios({
@@ -124,9 +136,10 @@ export default {
       })
     },
     // 获取文章列表
-    getArticles () {
+    getArticles (params) {
       this.$axios({
-        url: '/mp/v1_0/articles' // 请求地址
+        url: '/mp/v1_0/articles', // 请求地址
+        params
       }).then(result => {
         this.list = result.data.results // 获取文章列表
       })
