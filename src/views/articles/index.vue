@@ -8,7 +8,7 @@
       <el-form style="padding-left:50px">
          <el-form-item label="文章状态:">
            <!-- 放置单选框组 -->
-           <el-radio-group v-model="searchForm.status" @change="changCondition">
+           <el-radio-group v-model="searchForm.status" @change="change">
              <!-- 单选框选项  label值表示该选项对应的值-->
              <!-- :label的意思是后面值不会加引号 -->
               <!-- 文章状态，0-草稿，1-待审核，2-审核通过，3-审核失败，不传为全部 / 先将 5 定义成 全部 -->
@@ -22,7 +22,7 @@
          </el-form-item>
          <el-form-item label="频道类型:">
            <!-- 选择器 -->
-           <el-select @change="changCondition" placeholder="请选择频道" v-model="searchForm.channel_id">
+           <el-select @change="change" placeholder="请选择频道" v-model="searchForm.channel_id">
              <!-- 下拉选项 应该通过接口来获取数据 -->
              <!-- el-option是下拉的选项 label是显示值  value是绑定的值 -->
              <el-option v-for="item in channels" :key="item.id" :label="item.name" :value="item.id"></el-option>
@@ -30,7 +30,7 @@
          </el-form-item>
          <el-form-item label="日期范围:">
            <!-- 日期范围选择组件  要设置type属性为 daterange-->
-           <el-date-picker type='daterange' @change="changCondition" value-format="yyyy-MM-dd" v-model="searchForm.dateRange"></el-date-picker>
+           <el-date-picker type='daterange' @change="change" value-format="yyyy-MM-dd" v-model="searchForm.dateRange"></el-date-picker>
          </el-form-item>
       </el-form>
       <!-- 文章的主体结构 flex布局  -->
@@ -61,6 +61,16 @@
            <span><i class="el-icon-delete"></i> 删除</span>
          </div>
        </div>
+       <el-row type="flex" justify="center" align="middle">
+           <el-pagination
+            background
+            layout="prev, pager, next"
+            :total="page.total"
+            :current-page="page.currentPage"
+            :page-size="page.pageSize"
+            @current-change="changePage">
+            </el-pagination>
+       </el-row>
   </el-card>
 </template>
 
@@ -68,6 +78,12 @@
 export default {
   data () {
     return {
+      // 分页
+      page: {
+        currentPage: 1, // 当前页数
+        pageSize: 10, // 每页条数
+        total: 0 // 总数
+      },
       // 定义一个表单数据对象
       searchForm: {
         // 数据
@@ -114,10 +130,22 @@ export default {
     }
   },
   methods: {
+    //   分页改变
+    changePage (row) {
+      this.page.currentPage = row
+      this.changCondition()
+    },
+    // 改变时候筛选的功能
+    change () {
+      this.page.currentPage = 1
+      this.changCondition()
+    },
     // from 中改变的参数
     changCondition () {
       // 获取变化的参数
       const params = {
+        page: this.page.currentPage,
+        per_page: this.page.pageSize,
         status: this.searchForm.status === 5 ? null : this.searchForm.status,
         channel_id: this.searchForm.channel_id,
         begin_pubdate: this.searchForm.dateRange && this.searchForm.dateRange.length ? this.searchForm.dateRange[0] : null,
@@ -142,6 +170,9 @@ export default {
         params
       }).then(result => {
         this.list = result.data.results // 获取文章列表
+        this.page.total = result.data.total_count // 总数
+        this.page.pageSize = result.data.per_page // 当前页数
+        this.page.currentPage = result.data.page // 当前页数
       })
     }
   },
