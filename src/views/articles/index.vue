@@ -58,7 +58,7 @@
          <!-- 右侧内容 -->
          <div class="right">
            <span><i class="el-icon-edit"></i> 修改</span>
-           <span><i class="el-icon-delete"></i> 删除</span>
+           <span  @click="del(item.id.toString())"><i class="el-icon-delete"></i> 删除</span>
          </div>
        </div>
        <el-row type="flex" justify="center" align="middle">
@@ -130,6 +130,21 @@ export default {
     }
   },
   methods: {
+    del (id) {
+      this.$confirm('您确定要删除这条数据？', '提示').then(() => {
+        this.$axios({
+          url: `/mp/v1_0/articles/${id}`,
+          method: 'delete'
+        }).then(() => {
+          // 成功删除
+          // 重新拉取数据
+          this.change()
+        }).catch(() => {
+          // 失败的时候
+          this.$message.error('删除文章失败')
+        })
+      })
+    },
     //   分页改变
     changePage (row) {
       this.page.currentPage = row
