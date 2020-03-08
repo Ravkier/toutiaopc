@@ -26,6 +26,9 @@ const routes = [
         // 挂载素材管理路由
         path: 'material',
         component: () => import('@/views/material')
+      }, {
+        path: 'articles',
+        component: () => import('@/views/articles')
       }
     ]
   },
